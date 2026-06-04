@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: aicr_postgres
+    environment:
+      POSTGRES_DB: aicodereviewer
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports: 
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  
+  redis:
+    image: redis:7-alpine
+    container_name: aicr_redis
+    ports:
+      - "6379:6379"
+  
+  api:
+    build:
+      context: .
+      dockerfile: src/AiCodeReview.API/Dockerfile
+    container_name: aicr_api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=aicodereviewer;Username=postgres;Password=postgres
+      - ConnectionStrings__Redis=redis:6379
+    ports:
+      - "5000:8080"
+    depends_on:
+      - postgres
+      - redis
+
+volumes:
+  postgres_data:
